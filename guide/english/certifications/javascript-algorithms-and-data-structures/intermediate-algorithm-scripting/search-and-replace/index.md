@@ -145,55 +145,48 @@ You will create a program that takes a sentence, then search for a word in it an
 *   `replace()` is used to replace **before** with **after**, whose casing is same as **before**.
 
 ## ![:rotating_light:](https://forum.freecodecamp.com/images/emoji/emoji_one/rotating_light.png?v=3 ":rotating_light:") Advanced Code Solution Alternative:
-    // Add new method to the String object, not overriding it if one exists already
-    String.prototype.capitalize =  String.prototype.capitalize ||
-        function() {
-            return this[0].toUpperCase() + this.slice(1);
-        };
 
-    const Util = (function () {
-    // Create utility module to hold helper functions
-        function textCase(str, tCase) {
-            // Depending if the tCase argument is passed we either set the case of the
-            // given string or we get it.
-            // Those functions can be expanded for other text cases.
-            
-            if(tCase) {
-                return setCase(str, tCase);
-            } else {
-                return getCase(str);
-            }
+```javascript
+const isLetter = char => char.match(/^[a-zA-Z]*$/);
 
-            function setCase(str, tCase) {
-                switch(tCase) {
-                    case "uppercase": return str.toUpperCase();
-                    case "lowercase": return str.toLowerCase();
-                    case "capitalized": return str.capitalize();
-                    default: return str;
-                }
-            }
+const isUpperCase = char => char.charCodeAt(0) > 64;
 
-            function getCase(str) {
-                if (str === str.toUpperCase()) { return "uppercase"; }
-                if (str === str.toLowerCase()) { return "lowercase"; }
-                if (str === str.capitalize()) { return "capitalized"; }
-                return "normal";
-            }
-        }
+const matchCharCase = (a, b) => {
+	if (isLetter(a)) {
+		if (isUpperCase(a)) return b.toUpperCase();
+		return b.toLowerCase();
+	}
+	return b;
+};
 
-        return {
-            textCase
-        };
-    })();
+// 1. Trim A to the length of B
+// 2. Split into array and map over each character
+// 3. Match case for each character
+// 4. Join the mapped array back into a string
+// 5. If B is longer than A, append the remainder of B
 
-    function myReplace(str, before, after) {
-        const { textCase } = Util;
-        const regex = new RegExp(before, 'gi');
-        const replacingStr = textCase(after, textCase(before));
+const matchCase = (a, b) => a
+	.slice(0, b.length) 
+	.split('')
+	.map((c, i) => matchCharCase(c, b[i]))
+	.join('') + b.slice(a.length);
 
-        return str.replace(regex, replacingStr);
-    }
+const myReplace = (str, searchFor, replaceWith) => 
+	str.replace(searchFor, matchCase(searchFor, replaceWith));
+    
+// test here
+myReplace("A quick brown fox jumped over the lazy dog", "jumped", "leaped");
+myReplace('The quiCK bRoWn FOX JUMPED OVEr the LaZy doG', 'bRoWn Fox', 'yelloW fox');
+```
 
+### Code Explanation:
+
+This solution uses ES6 arrow functions and breaks each piece of logic into discrete parts with clear names so the code is easy to reason about and follow top to bottom.
+
+*   **isLetter** uses [String.prototype.match](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match) to check if a character is a letter (A-Z and a-z)`.
+*   **isUpperCase** checks if a letter is in the range of uppercase [ASCII](https://ascii.cl/).
+*   **matchCharCase** If A is a letter, change the case of B to match. If B is not a letter, toUpperCase() and toLowerCase() will have no effect. If A is not a letter, return B as is.
+*   **matchCase** See the comment block above the function for step by step information. This function allows for the search string and/or the replace string to have different lengths and supports `MiXeD cAsE`.
 
 ![:rocket:](https://forum.freecodecamp.com/images/emoji/emoji_one/rocket.png?v=3 ":rocket:") <a href='https://repl.it/@kr3at0/SearchAndReplace' target='_blank' rel='nofollow'>Run Code</a>
 
